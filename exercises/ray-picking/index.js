@@ -5,6 +5,8 @@ const createBuffer = require('gl-buffer');
 const createVAO = require('gl-vao');
 
 const mat4 = require('gl-mat4');
+const Ray = require('ray-3d');
+const pick = require('camera-picking-ray');
 
 class RayTest extends Component {
   constructor(props) {
@@ -29,7 +31,8 @@ class RayTest extends Component {
        1.0, -1.0, 0.0,
       -1.0,  1.0, 0.0,
        1.0,  1.0, 0.0,
-    ]
+    ].map((v) => v/4);
+
     const colors = [
        1.0,  1.0, 1.0,
        1.0,  0.0, 0.0,
@@ -38,7 +41,7 @@ class RayTest extends Component {
     ]
     const vao = createVAO(gl, [
       {
-          buffer: createBuffer(gl, verts.map((v) => v/4)),
+          buffer: createBuffer(gl, verts),
           size: 3
       },
       {
@@ -51,6 +54,7 @@ class RayTest extends Component {
       gl,
       shader,
       vao,
+      verts
     });
   }
 
@@ -59,7 +63,6 @@ class RayTest extends Component {
       gl,
       shader,
       vao,
-      camera,
     } = this.state
 
     if (!gl) return;
@@ -110,10 +113,50 @@ class RayTest extends Component {
     }
   }
 
+  picking({
+    clientX: x,
+    clientY: y
+  }) {
+
+    const {
+      gl,
+      verts,
+    } = this.state;
+
+    const {
+      view,
+      projection: proj
+    } = this.getCamera();
+
+    const {
+      width,
+      height
+    } = gl.canvas;
+
+    const {
+      top,
+      left
+    } = gl.canvas.getBoundingClientRect();
+
+    const projView = mat4.multiply(mat4.create(), proj, view);
+    const invProjView = mat4.invert(mat4.create(), projView);
+
+    const ray = new Ray();
+    const viewport = [0, 0, width, height];
+    pick(ray.origin, ray.direction, [x - left, y - top], viewport, invProjView);
+
+    if (ray.intersectsBox(
+      [
+        [verts[0], verts[1], verts[2]],
+        [verts[9], verts[10], verts[11]],
+      ]
+    )) console.log('pick');
+  }
+
   render() {
     this.renderGL();
     return (
-      <canvas ref='canvas' width={600} height={600}></canvas>
+      <canvas ref='canvas' onClick={(e) => this.picking(e)} width={600} height={600}></canvas>
     )
   }
 }

@@ -1,6 +1,7 @@
 module.exports = {
   entry: {
-    'projection': './examples/Projection/index.js'
+    'projection': './exercises/projection/index.js',
+    'raypicking': './exercises/ray-picking/index.js'
   },
   output: {
     path: __dirname,
