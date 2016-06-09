@@ -1,5 +1,6 @@
 module.exports = {
   entry: {
+    'geometry': './exercises/geometry/index.js',
     'projection': './exercises/projection/index.js',
     'raypicking': './exercises/ray-picking/index.js'
   },
@@ -10,7 +11,7 @@ module.exports = {
   module: {
     preLoaders: [
       {
-        test: /\.(glsl|vert|frag)$/,
+        test: /\.(obj|glsl|vert|frag)$/,
         exclude: /node_modules/,
         loader: 'raw'
       },
