@@ -66,15 +66,25 @@ class GeometryTest extends Component {
     geom.attr('position', sampleObj.positions);
     geom.attr('normal', normal);
 
+    const model = mat4.create();
     this.setState({
       gl,
       shader,
       geom,
+      model,
     });
+
+    setInterval(() => {
+      const { model } = this.state;
+
+      this.setState({
+        model: mat4.rotateY(mat4.create(), model, 0.05)
+      });
+    }, 1000/60);
   }
 
   renderGL() {
-    const { gl, shader, geom } = this.state;
+    const { gl, shader, geom, model } = this.state;
     const { width, height } = this.props;
     const { view, projection } = this.getCamera();
 
@@ -86,6 +96,7 @@ class GeometryTest extends Component {
     shader.uniforms = {
       projection,
       view,
+      model,
     };
     geom.draw();
     geom.unbind();
