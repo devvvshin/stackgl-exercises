@@ -26,6 +26,7 @@
     "gl-vao": "^1.2.1",
     "glslify-loader": "^1.0.2",
     "normals": "^1.1.0",
+    "parse-wavefront-obj": "^1.0.3",
     "raw-loader": "^0.5.1",
     "ray-3d": "^1.1.1",
     "react": "^15.1.0",

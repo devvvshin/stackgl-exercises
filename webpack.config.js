@@ -1,5 +1,6 @@
 module.exports = {
   entry: {
+    'pattern1': './exercises/pattern1/index.js',
     'geometry': './exercises/geometry/index.js',
     'projection': './exercises/projection/index.js',
     'raypicking': './exercises/ray-picking/index.js'
