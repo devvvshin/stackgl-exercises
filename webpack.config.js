@@ -1,5 +1,6 @@
 module.exports = {
   entry: {
+    'noise': './exercises/noise/index.js',
     'pattern2': './exercises/pattern2/index.js',
     'pattern1': './exercises/pattern1/index.js',
     'geometry': './exercises/geometry/index.js',

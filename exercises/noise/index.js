@@ -21,7 +21,7 @@ class ProjectionTest extends Component {
     const gl = canvas.getContext('webgl');
     const shader = createShader(gl,
       require('./shader/sample.vert'),
-      require('./shader/sample1.frag'));
+      require('./shader/1d_noise.frag'));
     shader.attributes.position.location = 0;
 
     const verts = [
