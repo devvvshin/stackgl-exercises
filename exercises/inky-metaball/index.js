@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
+
 const createShader = require('gl-shader');
 const createBuffer = require('gl-buffer');
 const createVAO = require('gl-vao');

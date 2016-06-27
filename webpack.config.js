@@ -1,5 +1,6 @@
 module.exports = {
   entry: {
+    'line-drawing': './exercises/line-drawing/index.js',
     'inky-metaball': './exercises/inky-metaball/index.js',
     'noise': './exercises/noise/index.js',
     'pattern2': './exercises/pattern2/index.js',

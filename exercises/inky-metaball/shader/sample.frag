@@ -36,8 +36,8 @@ float metaball(in vec2 st) {
 
 float sdfMetaball(in vec2 st) {
   float a = atan(st.y, st.x);
-  float t = sin(a * 2.0);
-  float r = distance(st, vec2(0., 0.)) * 2.0;
+  float t = sin(a * 4.0);
+  float r = distance(st, vec2(0., 0.));// * 2.0;
   float n = 0.4 + t * noise(st + sin(uTime * 0.01)) * abs(sin(uTime * 0.001)) * 0.5;
   return smoothstep(n, n + 0.3, r);
 }
@@ -45,14 +45,14 @@ float sdfMetaball(in vec2 st) {
 void main() {
   vec2 st = gl_FragCoord.xy / resolution.xy;
   vec3 color = vec3(1.0);
-
   st -= 0.5;
-  st -= abs(cos(mod(uTime * 0.001, 1000.0))) * 0.05;
+//  st -= abs(cos(mod(uTime * 0.001, 1000.0))) * 0.05;
   float sm = sdfMetaball(st);
   float a = 0.0;
-  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 1000.0) * 0.3) * 0.3;
-  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 50.0) * 0.4) * 0.3;
-  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 500.0) * 0.4) * 0.4;
-  color *= a;
+//  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 1000.0));// * 0.3;
+//  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 50.0) * 0.4) * 0.3;
+//  a += smoothstep(0.7, 0.7 + 0.001, sm + noise(st * 500.0) * 0.4) * 0.4;
+  color *= sm;
+
   gl_FragColor = vec4(color , 1.0);
 }
