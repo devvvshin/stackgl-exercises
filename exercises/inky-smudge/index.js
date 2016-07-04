@@ -28,6 +28,7 @@ class InkySmudge extends Component {
       require('./shader/blur.frag'));
 
     const texture = createTexture(gl, img);
+
     const vao = createVAO(gl, [{
       size: 3,
       buffer: createBuffer(gl, [
@@ -81,24 +82,40 @@ class InkySmudge extends Component {
         const blurBuf = this.genBlurBuffer(gl, img);
         resolve(blurBuf);
       }
-      img.src = '/img/text.jpg';
+      img.src = '/img/text1.jpg';
     });
 
     p.then((blurBuf) => {
 
+      const { width, height } = this.props;
       const shader = createShader(gl,
-        require('./shader/common.vert'),
+        require('./shader/smudge.vert'),
         require('./shader/smudge.frag'));
 
       shader.attributes.position.location = 0;
+      shader.attributes.aTexCoord.location = 1;
+
+      const x = 0;
+      const y = -1;
+      const w = blurBuf.width / width * 2;
+      const h = blurBuf.height / height * 2;
 
       const vao = createVAO(gl, [{
         size: 3,
         buffer: createBuffer(gl, [
-          -1, -1, 0,
-           1, -1, 0,
-          -1,  1, 0,
-           1,  1, 0
+          x, y, 0,
+          x, y + h, 0,
+          x + w,  y, 0,
+          x + w,  y + h, 0
+        ])
+      },
+      {
+        size: 2,
+        buffer: createBuffer(gl, [
+          0, 0,
+          0, 1,
+          1, 0,
+          1, 1
         ])
       }]);
 
@@ -143,7 +160,9 @@ class InkySmudge extends Component {
     const { projection, view } = this.getCamera();
     const { gl, shader, vao, blurBuf, time } = this.state;
 
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, width, height);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

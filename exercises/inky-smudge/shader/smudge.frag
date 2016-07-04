@@ -6,6 +6,8 @@ uniform sampler2D texture;
 uniform sampler2D blurTexture;
 uniform float time;
 
+varying vec2 texCoord;
+
 float rand(in vec2 st) {
     return fract(sin(dot(st, vec2(149.4928, 751.3942))));
 }
@@ -27,17 +29,17 @@ float noise(in vec2 st) {
 }
 
 void main() {
-  vec2 texCoord = gl_FragCoord.xy / texResolution.xy;
-  vec4 texColor = texture2D(texture, vec2(texCoord.x, 1.0 - texCoord.y));
-  vec4 blurColor = texture2D(blurTexture, texCoord);
+//  vec2 texCoord = gl_FragCoord.xy / texResolution.xy;
+  vec4 texColor = texture2D(texture, texCoord);//vec2(texCoord.x, 1.0 - texCoord.y));
+//  vec4 blurColor = texture2D(blurTexture, texCoord);
 
-  vec3 mc = (blurColor).rgb;
-
-  float a = 0.0;
-  float t = 1.0 - abs(sin(time/100.0));
-  a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 1000.0) * 0.1) * 0.3;
-  a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 50.0) * 0.2) * 0.3;
-  a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 500.0) * 0.2) * 0.4;
-
-  gl_FragColor = vec4(vec3(a), 1.0);
+//  vec3 mc = (blurColor).rgb;
+  //
+  // float a = 0.0;
+  // float t = 1.0 - abs(sin(time/100.0));
+  // a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 1000.0) * 0.1) * 0.3;
+  // a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 50.0) * 0.2) * 0.3;
+  // a += smoothstep(t, t + 0.001, mc.r + noise(texCoord * 500.0) * 0.2) * 0.4;
+  //
+  gl_FragColor = vec4(vec3(texColor.r), 1.0);
 }
