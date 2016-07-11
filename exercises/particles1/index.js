@@ -10,10 +10,11 @@ const createFBO = require('gl-fbo');
 const mat4 = require('gl-mat4');
 const getNormals = require('polyline-normals');
 
-class DynamicFluid extends Component {
+class Particle1 extends Component {
   constructor(args) {
     super(args);
 
+    this.BASE = 255;
     this.state = {
       gl: null,
       path: [],//[[-0.2, 0.0], [-0.2, 0.4]],
@@ -21,55 +22,102 @@ class DynamicFluid extends Component {
     }
   }
 
-  componentDidMount() {
-    const gl = this.refs.canvas.getContext('webgl');
-
-    const { width, height } = this.props;
+  genBufferSet(gl) {
+    const { width, height, particleSize } = this.props;
+    const range = (width > height) ? width : height;
     const shader = createShader(gl,
-      require('./shader/fluid.vert'),
-      require('./shader/fluid.frag'));
-
+      require('./shader/buffer.vert'),
+      require('./shader/buffer.frag'));
     shader.attributes.position.location = 0;
 
-    const x = -1;
-    const y = -1;
-    const w = 2;
-    const h = 2;
+    const w = Math.sqrt(particleSize);
+    const h = Math.sqrt(particleSize);
+
+    const fboA = createFBO(gl, [w, h]);
+    gl.viewport(0, 0, w, h);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const buffer = createBuffer(gl,[
+      -1, -1, 0,
+       1, -1, 0,
+      -1,  1, 0,
+       1,  1, 0
+    ]);
 
     const vao = createVAO(gl, [{
       size: 3,
-      buffer: createBuffer(gl, [
-        x, y, 0,
-        x, y + h, 0,
-        x + w,  y, 0,
-        x + w,  y + h, 0
-      ])
+      buffer
     }]);
 
-    const bufferShader = createShader(gl,
-      require('./shader/buffer.vert'),
-      require('./shader/buffer.frag'));
-
-    bufferShader.attributes.position.location = 0;
-
-    const buffer = createFBO(gl, [500, 500]);
-
-    buffer.bind();
-    bufferShader.bind();
+    fboA.bind();
+    shader.bind();
+    shader.uniforms = {
+      resolution: [width, height],
+      scale: this.BASE * this.BASE / range
+    }
     vao.bind();
     vao.draw(gl.TRIANGLE_STRIP, 4);
     vao.unbind();
 
+    return {
+      shader,
+      buffer,
+      vao,
+      fboA
+    }
+  }
+
+  genDrawSet(gl) {
+    const { width, height, particleSize } = this.props;
+    const shader = createShader(gl,
+      require('./shader/draw.vert'),
+      require('./shader/draw.frag'));
+    shader.attributes.index.location = 0;
+    let arr = new Array(particleSize * 2);
+
+    let pointsIdx = [];
+
+    for (let i = 0 ; i < arr.length ; i++) {
+      let x = i % width / width;
+      let y = Math.floor(i / width) / height;
+      pointsIdx.push(x);
+      pointsIdx.push(y);
+    }
+    const buffer = createBuffer(gl, pointsIdx);
+
+    const vao = createVAO(gl, [{
+      size: 2,
+      buffer
+    }])
+
+    return {
+      shader,
+      buffer,
+      vao,
+    }
+  }
+
+  componentDidMount() {
+    const gl = this.refs.canvas.getContext('webgl');
+
+    const { width, height } = this.props;
+
+    const bufferSet = this.genBufferSet(gl);
+    const drawSet = this.genDrawSet(gl);
+
     setInterval(() => {
       const { time } = this.state;
       this.setState({
-        gl,
-        shader,
-        vao,
-        buffer,
         time: time + 1,
       });
     }, 1000/60);
+
+    this.setState({
+      gl,
+      bufferSet,
+      drawSet,
+    })
   }
 
   getCamera() {
@@ -98,7 +146,10 @@ class DynamicFluid extends Component {
   renderGL() {
     const { width, height } = this.props;
     const { projection, view } = this.getCamera();
-    const { gl, shader, vao, time } = this.state;
+    const { gl, drawSet, bufferSet, time } = this.state;
+    const { shader, vao, } = drawSet;
+    const range = (width > height) ? width : height;
+    const scale = this.BASE * this.BASE / range;
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, width, height);
@@ -109,12 +160,15 @@ class DynamicFluid extends Component {
     shader.uniforms = {
       projection,
       view,
+      buf: bufferSet.fboA.color[0].bind(0),
       resolution: [width, height],
+      range,
+      scale,
       time,
     };
 
     vao.bind();
-    vao.draw(gl.TRIANGLE_STRIP, 4);
+    gl.drawArrays(gl.POINTS, 0, 1000);
     vao.unbind();
   }
 
@@ -128,6 +182,6 @@ class DynamicFluid extends Component {
 }
 
 ReactDOM.render(
-  <DynamicFluid width={600} height={600} />,
+  <Particle1 width={600} height={600} particleSize={10000} />,
   document.getElementById('app')
 );
