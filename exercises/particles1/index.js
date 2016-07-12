@@ -17,7 +17,6 @@ class Particle1 extends Component {
     this.BASE = 255;
     this.state = {
       gl: null,
-      path: [],//[[-0.2, 0.0], [-0.2, 0.4]],
       time: 0,
     }
   }
@@ -25,15 +24,18 @@ class Particle1 extends Component {
   genBufferSet(gl) {
     const { width, height, particleSize } = this.props;
     const range = (width > height) ? width : height;
+    const scale = this.BASE * this.BASE / range;
     const shader = createShader(gl,
       require('./shader/buffer.vert'),
       require('./shader/buffer.frag'));
     shader.attributes.position.location = 0;
 
-    const w = Math.sqrt(particleSize);
-    const h = Math.sqrt(particleSize);
+    const w = Math.ceil(Math.sqrt(particleSize));
+    const h = Math.ceil(Math.sqrt(particleSize));
 
     const fboA = createFBO(gl, [w, h]);
+    const fboB = createFBO(gl, [w, h]);
+
     gl.viewport(0, 0, w, h);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -53,9 +55,11 @@ class Particle1 extends Component {
     fboA.bind();
     shader.bind();
     shader.uniforms = {
-      resolution: [width, height],
-      scale: this.BASE * this.BASE / range
+      resolution: [w, h],
+      scale,
+      range
     }
+
     vao.bind();
     vao.draw(gl.TRIANGLE_STRIP, 4);
     vao.unbind();
@@ -64,23 +68,51 @@ class Particle1 extends Component {
       shader,
       buffer,
       vao,
-      fboA
+      fboA,
+      fboB
     }
   }
 
+
+  genLogicSet(gl) {
+
+    const shader = createShader(gl,
+      require('./shader/logic.vert'),
+      require('./shader/logic.frag'));
+
+    const buffer = createBuffer(gl,[
+      -1, -1, 0,
+       1, -1, 0,
+      -1,  1, 0,
+       1,  1, 0
+    ]);
+
+    const vao = createVAO(gl, [{
+      size: 3,
+      buffer
+    }]);
+
+    return {
+      shader,
+      vao,
+      buffer,
+    }
+  }
   genDrawSet(gl) {
     const { width, height, particleSize } = this.props;
     const shader = createShader(gl,
       require('./shader/draw.vert'),
       require('./shader/draw.frag'));
     shader.attributes.index.location = 0;
-    let arr = new Array(particleSize * 2);
 
+    let rowSize = Math.ceil(Math.sqrt(particleSize));
+    let colSize = Math.ceil(Math.sqrt(particleSize));
+
+    let arr = new Array(rowSize * colSize);
     let pointsIdx = [];
-
     for (let i = 0 ; i < arr.length ; i++) {
-      let x = i % width / width;
-      let y = Math.floor(i / width) / height;
+      let x = i % rowSize / rowSize;
+      let y = Math.floor(i / rowSize) / colSize;
       pointsIdx.push(x);
       pointsIdx.push(y);
     }
@@ -105,6 +137,7 @@ class Particle1 extends Component {
 
     const bufferSet = this.genBufferSet(gl);
     const drawSet = this.genDrawSet(gl);
+    const logicSet = this.genLogicSet(gl);
 
     setInterval(() => {
       const { time } = this.state;
@@ -117,7 +150,16 @@ class Particle1 extends Component {
       gl,
       bufferSet,
       drawSet,
+      logicSet,
     })
+  }
+
+  updateBuf(mode) {
+    const { bufferSet, drawSet, logicSet } = this.state;
+    
+    if (mode == 0) { // position
+
+    }
   }
 
   getCamera() {
@@ -144,12 +186,15 @@ class Particle1 extends Component {
   }
 
   renderGL() {
-    const { width, height } = this.props;
+    const { width, height, particleSize } = this.props;
     const { projection, view } = this.getCamera();
     const { gl, drawSet, bufferSet, time } = this.state;
     const { shader, vao, } = drawSet;
     const range = (width > height) ? width : height;
     const scale = this.BASE * this.BASE / range;
+
+    this.updateBuf(0);
+    this.updateBuf(1);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, width, height);
@@ -168,7 +213,7 @@ class Particle1 extends Component {
     };
 
     vao.bind();
-    gl.drawArrays(gl.POINTS, 0, 1000);
+    gl.drawArrays(gl.POINTS, 0, particleSize);
     vao.unbind();
   }
 
@@ -182,6 +227,6 @@ class Particle1 extends Component {
 }
 
 ReactDOM.render(
-  <Particle1 width={600} height={600} particleSize={10000} />,
+  <Particle1 width={600} height={600} particleSize={9} />,
   document.getElementById('app')
 );
