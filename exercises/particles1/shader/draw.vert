@@ -17,8 +17,8 @@ float decode(in vec2 channel, in float scale) {
 
 void main() {
   vec4 channels = texture2D(buf, index);
-  float x = decode(channels.rg, scale) / resolution.x;
-  float y = decode(channels.ba, scale) / resolution.y;
-  gl_Position = vec4(index.x, index.y, 0.0, 1.0);
-  gl_PointSize = 10.0;
+  float x = decode(channels.rg, scale) / resolution.x * 2.0;
+  float y = decode(channels.ba, scale) / resolution.y * 2.0;
+  gl_Position = vec4(x, y, 0.0, 1.0);
+  gl_PointSize = 4.0;
 }
