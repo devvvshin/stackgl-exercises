@@ -1,6 +1,7 @@
 module.exports = {
   entry: {
-    'particles1': './exercises/particles1/index.js',  
+    'blend1': './exercises/blend1/index.js',
+    'particles1': './exercises/particles1/index.js',
     'inky-smudge': './exercises/inky-smudge/index.js',
     'line-drawing': './exercises/line-drawing/index.js',
     'inky-metaball': './exercises/inky-metaball/index.js',
